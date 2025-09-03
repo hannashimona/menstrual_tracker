@@ -28,13 +28,14 @@ async def async_setup_entry(
     """Set up menstrual tracker from a config entry."""
     coordinator = MenstrualTrackerUpdateCoordinator(
         hass,
+        config_entry=entry,
         last_period=date.fromisoformat(entry.data[CONF_LAST_PERIOD]),
         cycle_length=entry.data[CONF_CYCLE_LENGTH],
         period_length=entry.data[CONF_PERIOD_LENGTH],
     )
     entry.runtime_data = MenstrualTrackerData(
         coordinator=coordinator,
-        integration=async_get_loaded_integration(hass, entry.domain),
+        integration=await async_get_loaded_integration(hass, entry.domain),
     )
     await coordinator.async_config_entry_first_refresh()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

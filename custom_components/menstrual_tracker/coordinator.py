@@ -11,6 +11,7 @@ from homeassistant.util import dt as dt_util
 from .const import LOGGER
 
 if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
 
@@ -21,6 +22,7 @@ class MenstrualTrackerUpdateCoordinator(DataUpdateCoordinator[dict]):
         self,
         hass: HomeAssistant,
         *,
+        config_entry: ConfigEntry,
         last_period: date,
         cycle_length: int,
         period_length: int,
@@ -32,6 +34,7 @@ class MenstrualTrackerUpdateCoordinator(DataUpdateCoordinator[dict]):
             name="menstrual_tracker",
             update_interval=timedelta(days=1),
         )
+        self.config_entry = config_entry
         self._last_period = last_period
         self._cycle_length = cycle_length
         self._period_length = period_length
