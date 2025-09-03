@@ -1,0 +1,12 @@
+{
+  "domain": "menstrual_tracker",
+  "name": "Mentrual Tracker",
+  "codeowners": [
+    "@hannashimona"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/hannashimona/menstrual_tracker",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/hannashimona/menstrual_tracker/issues",
+  "version": "0.1.0"
+}

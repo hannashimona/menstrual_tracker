@@ -1,8 +1,5 @@
 """
-Custom integration to integrate integration_blueprint with Home Assistant.
-
-For more details about this integration, please refer to
-https://github.com/ludeeus/integration_blueprint
+Custom integration to allow menstrual tracking in Home Assistant.
 """
 
 from __future__ import annotations

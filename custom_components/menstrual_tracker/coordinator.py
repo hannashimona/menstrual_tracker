@@ -1,4 +1,4 @@
-"""DataUpdateCoordinator for integration_blueprint."""
+"""DataUpdateCoordinator for menstrual_tracker."""
 
 from __future__ import annotations
 
