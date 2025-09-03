@@ -5,4 +5,11 @@ from logging import Logger, getLogger
 LOGGER: Logger = getLogger(__package__)
 
 DOMAIN = "menstrual_tracker"
-ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
+ATTRIBUTION = "Cycle data calculated locally"
+
+CONF_LAST_PERIOD = "last_period_start"
+CONF_CYCLE_LENGTH = "cycle_length"
+CONF_PERIOD_LENGTH = "period_length"
+
+DEFAULT_CYCLE_LENGTH = 28
+DEFAULT_PERIOD_LENGTH = 5

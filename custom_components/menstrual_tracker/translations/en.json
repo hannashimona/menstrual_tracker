@@ -2,20 +2,19 @@
     "config": {
         "step": {
             "user": {
-                "description": "If you need help with the configuration have a look here: https://github.com/ludeeus/integration_blueprint",
+                "description": "Set up your cycle information.",
                 "data": {
-                    "username": "Username",
-                    "password": "Password"
+                    "last_period_start": "Last period start date",
+                    "cycle_length": "Average cycle length (days)",
+                    "period_length": "Average period length (days)"
                 }
             }
         },
         "error": {
-            "auth": "Username/Password is wrong.",
-            "connection": "Unable to connect to the server.",
-            "unknown": "Unknown error occurred."
+            "invalid_date": "Invalid date format."
         },
         "abort": {
-            "already_configured": "This entry is already configured."
+            "already_configured": "Integration is already configured."
         }
     }
 }
