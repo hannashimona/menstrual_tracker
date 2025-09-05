@@ -18,6 +18,7 @@ from .const import (
     DEFAULT_CYCLE_LENGTH,
     DEFAULT_PERIOD_LENGTH,
     DOMAIN,
+    LOGGER,
 )
 from .coordinator import MenstrualTrackerUpdateCoordinator
 from .data import MenstrualTrackerConfigEntry, MenstrualTrackerData
@@ -69,10 +70,15 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: MenstrualTrackerConfigEntry
 ) -> bool:
     """Set up menstrual tracker from a config entry."""
+    last_period_str = entry.data.get(CONF_LAST_PERIOD, entry.data.get("last_period"))
+    if not last_period_str:
+        LOGGER.error("Missing %s in config entry data", CONF_LAST_PERIOD)
+        return False
+
     coordinator = MenstrualTrackerUpdateCoordinator(
         hass,
         config_entry=entry,
-        last_period=date.fromisoformat(entry.data[CONF_LAST_PERIOD]),
+        last_period=date.fromisoformat(last_period_str),
         cycle_length=entry.data[CONF_CYCLE_LENGTH],
         period_length=entry.data[CONF_PERIOD_LENGTH],
     )
@@ -98,3 +104,18 @@ async def async_reload_entry(
 ) -> None:
     """Reload when config entry options change."""
     await hass.config_entries.async_reload(entry.entry_id)
+
+
+async def async_migrate_entry(
+    hass: HomeAssistant, entry: config_entries.ConfigEntry
+) -> bool:
+    """Migrate old entry data to new format."""
+    if entry.version > 1:
+        return True
+
+    LOGGER.debug("Migrating config entry from version %s", entry.version)
+    data = {**entry.data}
+    if "last_period" in data and CONF_LAST_PERIOD not in data:
+        data[CONF_LAST_PERIOD] = data.pop("last_period")
+    hass.config_entries.async_update_entry(entry, data=data, version=2)
+    return True
