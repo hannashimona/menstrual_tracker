@@ -5,21 +5,22 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from homeassistant.config_entries import ConfigEntry
+
 if TYPE_CHECKING:
-    from homeassistant.config_entries import ConfigEntry
     from homeassistant.loader import Integration
 
-    from .api import IntegrationBlueprintApiClient
-    from .coordinator import BlueprintDataUpdateCoordinator
+    from .coordinator import MenstrualTrackerUpdateCoordinator
 
-
-type IntegrationBlueprintConfigEntry = ConfigEntry[IntegrationBlueprintData]
+    class MenstrualTrackerConfigEntry(ConfigEntry["MenstrualTrackerData"]):
+        """Config entry type for this integration."""
+else:
+    MenstrualTrackerConfigEntry = ConfigEntry
 
 
 @dataclass
-class IntegrationBlueprintData:
-    """Data for the Blueprint integration."""
+class MenstrualTrackerData:
+    """Runtime data for the integration."""
 
-    client: IntegrationBlueprintApiClient
-    coordinator: BlueprintDataUpdateCoordinator
+    coordinator: MenstrualTrackerUpdateCoordinator
     integration: Integration

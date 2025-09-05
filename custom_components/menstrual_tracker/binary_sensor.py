@@ -1,61 +1,57 @@
-"""Binary sensor platform for menstrual_tracker."""
+"""Binary sensors for menstrual tracker."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
 from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
 
-from .entity import IntegrationBlueprintEntity
+from .entity import MenstrualTrackerEntity
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-    from .coordinator import BlueprintDataUpdateCoordinator
-    from .data import IntegrationBlueprintConfigEntry
+    from .coordinator import MenstrualTrackerUpdateCoordinator
+    from .data import MenstrualTrackerConfigEntry
 
-ENTITY_DESCRIPTIONS = (
+ENTITY_DESCRIPTIONS: tuple[BinarySensorEntityDescription, ...] = (
     BinarySensorEntityDescription(
-        key="menstrual_tracker",
-        name="Menstrual Tracker Binary Sensor",
-        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        key="currently_menstruating",
+        name="Currently Menstruating",
     ),
 )
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,  # noqa: ARG001 Unused function argument: `hass`
-    entry: IntegrationBlueprintConfigEntry,
+    _hass: HomeAssistant,
+    entry: MenstrualTrackerConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the binary_sensor platform."""
+    """Set up binary sensor entities."""
     async_add_entities(
-        IntegrationBlueprintBinarySensor(
-            coordinator=entry.runtime_data.coordinator,
-            entity_description=entity_description,
-        )
-        for entity_description in ENTITY_DESCRIPTIONS
+        MenstrualTrackerBinarySensor(entry.runtime_data.coordinator, description)
+        for description in ENTITY_DESCRIPTIONS
     )
 
 
-class IntegrationBlueprintBinarySensor(IntegrationBlueprintEntity, BinarySensorEntity):
-    """menstrual_tracker binary_sensor class."""
+class MenstrualTrackerBinarySensor(MenstrualTrackerEntity, BinarySensorEntity):
+    """Representation of a menstrual tracker binary sensor."""
 
     def __init__(
         self,
-        coordinator: BlueprintDataUpdateCoordinator,
-        entity_description: BinarySensorEntityDescription,
+        coordinator: MenstrualTrackerUpdateCoordinator,
+        description: BinarySensorEntityDescription,
     ) -> None:
-        """Initialize the binary_sensor class."""
+        """Initialize the binary sensor."""
         super().__init__(coordinator)
-        self.entity_description = entity_description
+        self.entity_description = description
+        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{description.key}"
 
     @property
     def is_on(self) -> bool:
-        """Return true if the binary_sensor is on."""
-        return self.coordinator.data.get("title", "") == "foo"
+        """Return true if currently menstruating."""
+        return bool(self.coordinator.data.get("currently_menstruating"))

@@ -1,89 +1,57 @@
-"""Adds config flow for Blueprint."""
+"""Config flow for menstrual tracker."""
 
 from __future__ import annotations
 
+from datetime import date
+
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers import selector
-from homeassistant.helpers.aiohttp_client import async_create_clientsession
-from slugify import slugify
 
-from .api import (
-    IntegrationBlueprintApiClient,
-    IntegrationBlueprintApiClientAuthenticationError,
-    IntegrationBlueprintApiClientCommunicationError,
-    IntegrationBlueprintApiClientError,
+from .const import (
+    CONF_CYCLE_LENGTH,
+    CONF_LAST_PERIOD,
+    CONF_PERIOD_LENGTH,
+    DEFAULT_CYCLE_LENGTH,
+    DEFAULT_PERIOD_LENGTH,
+    DOMAIN,
 )
-from .const import DOMAIN, LOGGER
 
 
-class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow for Blueprint."""
+class MenstrualTrackerFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+    """Handle a config flow for the integration."""
 
     VERSION = 1
 
     async def async_step_user(
-        self,
-        user_input: dict | None = None,
+        self, user_input: dict | None = None
     ) -> config_entries.ConfigFlowResult:
-        """Handle a flow initialized by the user."""
-        _errors = {}
+        """Handle the initial step."""
+        errors: dict[str, str] = {}
         if user_input is not None:
             try:
-                await self._test_credentials(
-                    username=user_input[CONF_USERNAME],
-                    password=user_input[CONF_PASSWORD],
-                )
-            except IntegrationBlueprintApiClientAuthenticationError as exception:
-                LOGGER.warning(exception)
-                _errors["base"] = "auth"
-            except IntegrationBlueprintApiClientCommunicationError as exception:
-                LOGGER.error(exception)
-                _errors["base"] = "connection"
-            except IntegrationBlueprintApiClientError as exception:
-                LOGGER.exception(exception)
-                _errors["base"] = "unknown"
+                date.fromisoformat(user_input[CONF_LAST_PERIOD])
+            except ValueError:
+                errors[CONF_LAST_PERIOD] = "invalid_date"
             else:
-                await self.async_set_unique_id(
-                    ## Do NOT use this in production code
-                    ## The unique_id should never be something that can change
-                    ## https://developers.home-assistant.io/docs/config_entries_config_flow_handler#unique-ids
-                    unique_id=slugify(user_input[CONF_USERNAME])
-                )
+                await self.async_set_unique_id(DOMAIN)
                 self._abort_if_unique_id_configured()
                 return self.async_create_entry(
-                    title=user_input[CONF_USERNAME],
-                    data=user_input,
+                    title="Menstrual Tracker", data=user_input
                 )
 
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
+                    vol.Required(CONF_LAST_PERIOD): selector.DateSelector(),
                     vol.Required(
-                        CONF_USERNAME,
-                        default=(user_input or {}).get(CONF_USERNAME, vol.UNDEFINED),
-                    ): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT,
-                        ),
-                    ),
-                    vol.Required(CONF_PASSWORD): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.PASSWORD,
-                        ),
-                    ),
-                },
+                        CONF_CYCLE_LENGTH, default=DEFAULT_CYCLE_LENGTH
+                    ): selector.NumberSelector(selector.NumberSelectorConfig(min=1)),
+                    vol.Required(
+                        CONF_PERIOD_LENGTH, default=DEFAULT_PERIOD_LENGTH
+                    ): selector.NumberSelector(selector.NumberSelectorConfig(min=1)),
+                }
             ),
-            errors=_errors,
+            errors=errors,
         )
-
-    async def _test_credentials(self, username: str, password: str) -> None:
-        """Validate credentials."""
-        client = IntegrationBlueprintApiClient(
-            username=username,
-            password=password,
-            session=async_create_clientsession(self.hass),
-        )
-        await client.async_get_data()
