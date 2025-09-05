@@ -55,3 +55,9 @@ class MenstrualTrackerFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             ),
             errors=errors,
         )
+
+    async def async_step_import(
+        self, config: dict
+    ) -> config_entries.ConfigFlowResult:
+        """Handle import from YAML."""
+        return await self.async_step_user(config)

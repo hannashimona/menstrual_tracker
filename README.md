@@ -19,4 +19,13 @@ A simple Home Assistant integration that tracks your menstrual cycle and exposes
    - Average cycle length
    - Average period length
 
+   Alternatively, configure via YAML:
+
+   ```yaml
+   menstrual_tracker:
+     last_period_start: "2025-08-01"
+     cycle_length: 28
+     period_length: 5
+   ```
+
 The integration calculates cycle information locally and updates once per day.

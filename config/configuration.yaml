@@ -3,3 +3,8 @@ logger:
   default: info
   logs:
     custom_components.menstrual_tracker: debug
+
+menstrual_tracker:
+  last_period_start: "2025-08-01"
+  cycle_length: 28
+  period_length: 5
