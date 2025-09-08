@@ -8,3 +8,77 @@ menstrual_tracker:
   last_period_start: "2025-08-01"
   cycle_length: 28
   period_length: 5
+
+# Script with a friendly form to record daily menstrual events
+script:
+  record_menstrual_event:
+    alias: Record Menstrual Event
+    description: Quickly record menstruation status, flow, and symptoms for a date.
+    fields:
+      entity_id:
+        name: Target Entity (optional)
+        description: Choose any entity from this integration to target a specific config entry (only needed if you have multiple entries).
+        selector:
+          entity:
+            integration: menstrual_tracker
+      date:
+        name: Date
+        description: Day the event applies to (defaults to today if omitted).
+        selector:
+          date:
+      menstruating:
+        name: Menstruating
+        required: true
+        selector:
+          boolean:
+      flow:
+        name: Flow
+        required: true
+        selector:
+          select:
+            options:
+              - none
+              - spotting
+              - light
+              - medium
+              - heavy
+      symptoms:
+        name: Symptoms
+        description: Select any symptoms that apply.
+        selector:
+          select:
+            multiple: true
+            custom_value: true
+            options:
+              - cramps
+              - headache
+              - backache
+              - bloating
+              - fatigue
+              - mood_swings
+              - acne
+              - nausea
+              - diarrhea
+              - constipation
+              - tender_breasts
+              - insomnia
+              - cravings
+    sequence:
+      - choose:
+          - conditions: "{{ entity_id is defined }}"
+            sequence:
+              - service: menstrual_tracker.record_menstrual_event
+                data:
+                  entity_id: "{{ entity_id }}"
+                  date: "{{ date }}"
+                  menstruating: "{{ menstruating }}"
+                  flow: "{{ flow }}"
+                  symptoms: "{{ symptoms | default([]) }}"
+        default:
+          - service: menstrual_tracker.record_menstrual_event
+            data:
+              date: "{{ date }}"
+              menstruating: "{{ menstruating }}"
+              flow: "{{ flow }}"
+              symptoms: "{{ symptoms | default([]) }}"
+    mode: single

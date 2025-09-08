@@ -75,5 +75,7 @@ class MenstrualTrackerSensor(MenstrualTrackerEntity, SensorEntity):
         if key == "fertility_window":
             start = data.get("fertility_window_start")
             end = data.get("fertility_window_end")
+            if not start or not end:
+                return None
             return f"{start} - {end}"
         return None

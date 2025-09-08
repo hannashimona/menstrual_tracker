@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from homeassistant.loader import Integration
 
     from .coordinator import MenstrualTrackerUpdateCoordinator
+    from .storage import MenstrualTrackerStorage
 
     class MenstrualTrackerConfigEntry(ConfigEntry["MenstrualTrackerData"]):
         """Config entry type for this integration."""
@@ -24,3 +25,4 @@ class MenstrualTrackerData:
 
     coordinator: MenstrualTrackerUpdateCoordinator
     integration: Integration
+    storage: "MenstrualTrackerStorage"

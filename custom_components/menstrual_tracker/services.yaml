@@ -1,0 +1,168 @@
+record_menstrual_event:
+  name: Record daily menstrual event
+  description: Record a structured daily event with menstruation status, flow, and symptoms. Multiple events per day are allowed.
+  fields:
+    date:
+      name: Date
+      description: Day the event applies to (defaults to today).
+      selector:
+        date:
+    menstruating:
+      name: Menstruating
+      description: Whether menstruation is occurring on this day/event.
+      required: true
+      selector:
+        boolean:
+    flow:
+      name: Flow
+      description: Flow intensity (use "none" if not menstruating).
+      required: true
+      selector:
+        select:
+          options:
+            - none
+            - spotting
+            - light
+            - medium
+            - heavy
+    symptoms:
+      name: Symptoms
+      description: Select any symptoms that apply.
+      selector:
+        select:
+          multiple: true
+          custom_value: true
+          options:
+            - cramps
+            - headache
+            - backache
+            - bloating
+            - fatigue
+            - mood_swings
+            - acne
+            - nausea
+            - diarrhea
+            - constipation
+            - tender_breasts
+            - insomnia
+            - cravings
+    entity_id:
+      name: Entity
+      description: Any entity from this integration to target a specific config entry.
+      selector:
+        entity:
+          integration: menstrual_tracker
+    entry_id:
+      name: Config Entry ID
+  description: Advanced. Target a specific config entry by ID if multiple exist.
+  example: "abcd1234efgh5678"
+
+import_history:
+  name: Import menstrual history
+  description: >-
+    Import historical periods and daily events to improve predictions. Supports
+    native JSON ({"periods": [...], "events": [...]}) and third-party list format
+    items like {"type":"period","date":"YYYY-MM-DD","value":{"option":"medium"}}.
+  fields:
+    file:
+      name: JSON File Path
+      description: Optional path (relative to Home Assistant config) to JSON file to import.
+      example: data/menstrual_history.json
+    json:
+      name: JSON Payload
+      description: Inline JSON string to import if no file is provided.
+      example: '{"periods":[{"start":"2024-07-01","end":"2024-07-05"}]}'
+    periods:
+      name: Periods
+      description: List of periods to import (start/end dates).
+      example: [{"start":"2024-06-01","end":"2024-06-05"}]
+    events:
+      name: Daily Events
+      description: List of daily events (day, menstruating, flow, symptoms).
+      example: [{"day":"2024-06-02","menstruating":true,"flow":"medium","symptoms":["cramps"]}]
+    mode:
+      name: Mode
+      description: Merge with existing history or replace it entirely.
+      selector:
+        select:
+          options:
+            - merge
+            - replace
+    entity_id:
+      name: Entity
+      description: Any entity from this integration to target a specific config entry.
+      selector:
+        entity:
+          integration: menstrual_tracker
+    entry_id:
+      name: Config Entry ID
+      description: Advanced. Target a specific config entry by ID if multiple exist.
+      example: "abcd1234efgh5678"
+
+delete_menstrual_event:
+  name: Delete menstrual event(s)
+  description: Delete recorded daily menstrual events for a date.
+  fields:
+    date:
+      name: Date
+      description: The day whose events should be deleted.
+      required: true
+      selector:
+        date:
+    mode:
+      name: Mode
+      description: Which events to delete for the date.
+      selector:
+        select:
+          options:
+            - last
+            - any
+            - exact
+      default: last
+    menstruating:
+      name: Menstruating (exact mode)
+      description: Only used when mode is exact.
+      selector:
+        boolean:
+    flow:
+      name: Flow (exact mode)
+      description: Only used when mode is exact.
+      selector:
+        select:
+          options:
+            - none
+            - spotting
+            - light
+            - medium
+            - heavy
+    symptoms:
+      name: Symptoms (exact mode)
+      description: Only used when mode is exact; must match exactly to delete.
+      selector:
+        select:
+          multiple: true
+          custom_value: true
+          options:
+            - cramps
+            - headache
+            - backache
+            - bloating
+            - fatigue
+            - mood_swings
+            - acne
+            - nausea
+            - diarrhea
+            - constipation
+            - tender_breasts
+            - insomnia
+            - cravings
+    entity_id:
+      name: Entity
+      description: Any entity from this integration to target a specific config entry.
+      selector:
+        entity:
+          integration: menstrual_tracker
+    entry_id:
+      name: Config Entry ID
+      description: Advanced. Target a specific config entry by ID if multiple exist.
+      example: "abcd1234efgh5678"

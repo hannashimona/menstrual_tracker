@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 from typing import TYPE_CHECKING
 
 import voluptuous as vol
@@ -10,24 +10,33 @@ from homeassistant import config_entries
 from homeassistant.const import Platform
 from homeassistant.helpers import config_validation as cv
 from homeassistant.loader import async_get_loaded_integration
+from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_CYCLE_LENGTH,
     CONF_LAST_PERIOD,
     CONF_PERIOD_LENGTH,
+    CONF_SHOW_FERTILITY_ON_CAL,
     DEFAULT_CYCLE_LENGTH,
     DEFAULT_PERIOD_LENGTH,
     DOMAIN,
     LOGGER,
 )
 from .coordinator import MenstrualTrackerUpdateCoordinator
+from .services import async_register_services
 from .data import MenstrualTrackerConfigEntry, MenstrualTrackerData
+from .storage import MenstrualTrackerStorage
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.typing import ConfigType
 
-PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.CALENDAR]
+PLATFORMS: list[Platform] = [
+    Platform.SENSOR,
+    Platform.BINARY_SENSOR,
+    Platform.CALENDAR,
+    Platform.SWITCH,
+]
 
 
 CONFIG_SCHEMA = vol.Schema(
@@ -41,6 +50,7 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Required(
                     CONF_PERIOD_LENGTH, default=DEFAULT_PERIOD_LENGTH
                 ): cv.positive_int,
+                vol.Optional(CONF_SHOW_FERTILITY_ON_CAL, default=False): cv.boolean,
             }
         )
     },
@@ -60,6 +70,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 CONF_LAST_PERIOD: config[DOMAIN][CONF_LAST_PERIOD].isoformat(),
                 CONF_CYCLE_LENGTH: config[DOMAIN][CONF_CYCLE_LENGTH],
                 CONF_PERIOD_LENGTH: config[DOMAIN][CONF_PERIOD_LENGTH],
+                CONF_SHOW_FERTILITY_ON_CAL: config[DOMAIN].get(CONF_SHOW_FERTILITY_ON_CAL, False),
             },
         )
     )
@@ -70,24 +81,57 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: MenstrualTrackerConfigEntry
 ) -> bool:
     """Set up menstrual tracker from a config entry."""
+    # Ensure domain services are registered once
+    async_register_services(hass)
     last_period_str = entry.data.get(CONF_LAST_PERIOD, entry.data.get("last_period"))
     if not last_period_str:
-        LOGGER.error("Missing %s in config entry data", CONF_LAST_PERIOD)
-        return False
+        # Be resilient: default to today and persist, to avoid setup failure
+        today_str = dt_util.now().date().isoformat()
+        LOGGER.warning(
+            "Missing %s in config entry data; defaulting to today (%s)",
+            CONF_LAST_PERIOD,
+            today_str,
+        )
+        hass.config_entries.async_update_entry(
+            entry, data={**entry.data, CONF_LAST_PERIOD: today_str}
+        )
+        last_period_str = today_str
+
+    storage = MenstrualTrackerStorage(hass, entry.entry_id)
+    await storage.async_load()
+
+    # Seed an initial recorded period based on config values so it appears on the calendar
+    try:
+        lp = date.fromisoformat(last_period_str)
+        period_len = entry.data.get(CONF_PERIOD_LENGTH, DEFAULT_PERIOD_LENGTH)
+        # Only add if not already present in history
+        if not any(p.start == lp for p in storage.periods):
+            end = lp + timedelta(days=max(0, period_len - 1))
+            await storage.async_add_or_update(start=lp, end=end)
+    except Exception:  # pragma: no cover - be resilient during setup
+        LOGGER.debug("Skipping seeding initial period entry due to parsing error", exc_info=True)
 
     coordinator = MenstrualTrackerUpdateCoordinator(
         hass,
         config_entry=entry,
         last_period=date.fromisoformat(last_period_str),
-        cycle_length=entry.data[CONF_CYCLE_LENGTH],
-        period_length=entry.data[CONF_PERIOD_LENGTH],
+        cycle_length=entry.data.get(CONF_CYCLE_LENGTH, DEFAULT_CYCLE_LENGTH),
+        period_length=entry.data.get(CONF_PERIOD_LENGTH, DEFAULT_PERIOD_LENGTH),
+        storage=storage,
     )
     entry.runtime_data = MenstrualTrackerData(
         coordinator=coordinator,
         integration=async_get_loaded_integration(hass, entry.domain),
+        storage=storage,
     )
     await coordinator.async_config_entry_first_refresh()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    # Ensure option for showing fertility on calendar exists; default to YAML value or False
+    if CONF_SHOW_FERTILITY_ON_CAL not in entry.options:
+        show_flag = bool(entry.data.get(CONF_SHOW_FERTILITY_ON_CAL, False))
+        hass.config_entries.async_update_entry(
+            entry, options={**entry.options, CONF_SHOW_FERTILITY_ON_CAL: show_flag}
+        )
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     return True
 
