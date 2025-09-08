@@ -16,5 +16,47 @@
         "abort": {
             "already_configured": "Integration is already configured."
         }
+    },
+    "entity": {
+        "sensor": {
+            "day_of_cycle": {
+                "name": "Day of Cycle"
+            },
+            "fertility_window": {
+                "name": "Predicted Fertility Window"
+            },
+            "next_period_start": {
+                "name": "Next Period Start"
+            },
+            "cycle_length": {
+                "name": "Average Cycle Length"
+            },
+            "period_length": {
+                "name": "Average Period Length"
+            },
+            "cycle_length_p25": {
+                "name": "Cycle Length 25th Percentile"
+            },
+            "cycle_length_p50": {
+                "name": "Cycle Length Median"
+            },
+            "cycle_length_p75": {
+                "name": "Cycle Length 75th Percentile"
+            },
+            "period_length_p25": {
+                "name": "Period Length 25th Percentile"
+            },
+            "period_length_p50": {
+                "name": "Period Length Median"
+            },
+            "period_length_p75": {
+                "name": "Period Length 75th Percentile"
+            }
+        },
+        "binary_sensor": {
+            "currently_menstruating": {
+                "name": "Currently Menstruating"
+            }
+        }
     }
 }

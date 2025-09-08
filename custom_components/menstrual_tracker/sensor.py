@@ -35,6 +35,46 @@ ENTITY_DESCRIPTIONS: tuple[SensorEntityDescription, ...] = (
         name="Next Period Start",
         device_class=SensorDeviceClass.DATE,
     ),
+    SensorEntityDescription(
+        key="cycle_length",
+        name="Average Cycle Length",
+        icon="mdi:calendar-clock",
+    ),
+    SensorEntityDescription(
+        key="period_length",
+        name="Average Period Length",
+        icon="mdi:calendar-range",
+    ),
+    SensorEntityDescription(
+        key="cycle_length_p25",
+        name="Cycle Length 25th Percentile",
+        icon="mdi:chart-bell-curve",
+    ),
+    SensorEntityDescription(
+        key="cycle_length_p50",
+        name="Cycle Length Median",
+        icon="mdi:chart-bell-curve",
+    ),
+    SensorEntityDescription(
+        key="cycle_length_p75",
+        name="Cycle Length 75th Percentile",
+        icon="mdi:chart-bell-curve",
+    ),
+    SensorEntityDescription(
+        key="period_length_p25",
+        name="Period Length 25th Percentile",
+        icon="mdi:chart-bell-curve",
+    ),
+    SensorEntityDescription(
+        key="period_length_p50",
+        name="Period Length Median",
+        icon="mdi:chart-bell-curve",
+    ),
+    SensorEntityDescription(
+        key="period_length_p75",
+        name="Period Length 75th Percentile",
+        icon="mdi:chart-bell-curve",
+    ),
 )
 
 
@@ -78,4 +118,14 @@ class MenstrualTrackerSensor(MenstrualTrackerEntity, SensorEntity):
             if not start or not end:
                 return None
             return f"{start} - {end}"
+        if key == "cycle_length":
+            return data.get("cycle_length")
+        if key == "period_length":
+            return data.get("period_length")
+        if key.startswith("cycle_length_p"):
+            stats = data.get("cycle_length_stats") or {}
+            return stats.get(key.replace("cycle_length_", ""))
+        if key.startswith("period_length_p"):
+            stats = data.get("period_length_stats") or {}
+            return stats.get(key.replace("period_length_", ""))
         return None
