@@ -7,6 +7,9 @@ A simple Home Assistant integration that tracks your menstrual cycle and exposes
 - **Day of Cycle** sensor
 - **Predicted Fertility Window** sensor
 - **Next Period Start** sensor
+- **Average Cycle Length** sensor
+- **Average Period Length** sensor
+- **Cycle/Period Length Percentile** sensors (25th/50th/75th when history is available)
 - **Currently Menstruating** binary sensor
 - **Calendar** entity showing upcoming period and fertility window events
 
